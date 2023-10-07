@@ -21,11 +21,26 @@ func (app *application) createWatchesHandler(w http.ResponseWriter, r *http.Requ
 		app.badRequestResponse(w, r, err)
 		return
 	}
+	// Copy the values from the input struct to a new Movie struct.
+	movie := &data.Watches{
+		Title:       input.Title,
+		Year:        input.Year,
+		Price:       input.Price,
+		WatchesType: input.WatchesType,
+	}
 
+	// Initialize a new Validator.
 	v := validator.New()
-	// Use the Check() method to execute our validation checks. This will add the
-	// provided key and error message to the errors map if the check does not evaluate // to true. For example, in the first line here we "check that the title is not
-	// equal to the empty string". In the second, we "check that the length of the title // is less than or equal to 500 bytes" and so on.
+
+	// Call the ValidateMovie() function and return a response containing the errors if
+	// any of the checks fail.
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	fmt.Fprintf(w, "%+v\n", input)
+
 	v.Check(input.Title != "", "title", "must be provided")
 	v.Check(len(input.Title) <= 500, "title", "must not be more than 500 bytes long")
 	v.Check(input.Year != 0, "year", "must be provided")
