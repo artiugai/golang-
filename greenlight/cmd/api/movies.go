@@ -5,6 +5,9 @@ import (
 	"net/http"
 )
 
+func (app *application) createMovieHandler(w http.ResponseWriter, _ *http.Request) {
+	fmt.Fprintln(w, "create a new movie")
+}
 func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
