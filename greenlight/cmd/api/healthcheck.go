@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json" // New import "net/http"
+	"encoding/json" // New import
 	"net/http"
 )
 
@@ -21,12 +21,10 @@ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
 		return
 	}
-	// Append a newline to the JSON. This is just a small nicety to make it easier to
-	// view in terminal applications.
+	// Append a newline to the JSON. This is just a small nicety to make it easier to // view in terminal applications.
 	js = append(js, '\n')
 
-	// At this point we know that encoding the data worked without any problems, so we
-	//can safely set any necessary HTTP headers for a successful response.
+	// At this point we know that encoding the data worked without any problems, so we // can safely set any necessary HTTP headers for a successful response.
 	w.Header().Set("Content-Type", "application/json")
 
 	// Use w.Write() to send the []byte slice containing the JSON as the response body.
