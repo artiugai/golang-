@@ -18,20 +18,18 @@ func (app *application) showWatchesHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Create a new instance of the Watches struct, containing the ID we extracted from
-	// the URL and some dummy data. Also notice that we deliberately haven't set a
-	// value for the Year field.
 	watches := data.Watches{
 		ID:          id,
 		CreatedAt:   time.Now(),
 		Title:       "Rolex",
 		Runtime:     102,
-		WatchesType: []string{"Datejust", "Submariner", "Daytona"},
+		WatchesType: []string{"Submariner", "Daytona", "Datejust"},
 		Version:     1,
 	}
 
-	// Encode the struct to JSON and send it as the HTTP response.
-	err = app.writeJSON(w, http.StatusOK, watches, nil)
+	// Create an envelope {"watchese": watches} instance and pass it to writeJSON(), instead
+	// of passing the plain movie struct.
+	err = app.writeJSON(w, http.StatusOK, envelope{"watches": watches}, nil)
 	if err != nil {
 		app.logger.Println(err)
 		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
