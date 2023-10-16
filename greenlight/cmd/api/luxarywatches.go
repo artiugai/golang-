@@ -22,7 +22,7 @@ func (app *application) createWatchesHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	// Copy the values from the input struct to a new Movie struct.
-	movie := &data.Watches{
+	watches := &data.Watches{
 		Title:       input.Title,
 		Year:        input.Year,
 		Price:       input.Price,
@@ -34,7 +34,7 @@ func (app *application) createWatchesHandler(w http.ResponseWriter, r *http.Requ
 
 	// Call the ValidateMovie() function and return a response containing the errors if
 	// any of the checks fail.
-	if data.ValidateMovie(v, movie); !v.Valid() {
+	if data.ValidateMovie(v, watches); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
