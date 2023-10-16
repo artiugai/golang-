@@ -5,15 +5,11 @@ import (
 	"database/sql" // New import
 	"flag"
 	"fmt"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
 	"time"
-
-	// Import the pq driver so that it can register itself with the database/sql
-	// package. Note that we alias this import to the blank identifier, to stop the Go
-	// compiler complaining that the package isn't being used.
-	_ "github.com/lib/pq"
 )
 
 const version = "1.0.0"
@@ -37,7 +33,9 @@ type application struct {
 }
 
 func main() {
+
 	var cfg config
+
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
@@ -88,37 +86,33 @@ func main() {
 }
 
 // The openDB() function returns a sql.DB connection pool.
+
 func openDB(cfg config) (*sql.DB, error) {
-	db, err := sql.Open("postgres", cfg.db.dsn)
+	fmt.Println(cfg.db.dsn)
+	dsn := "postgres://greenlight:pa55word@localhost/greenlight?sslmode=disable"
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}
-
-	// Set the maximum number of open (in-use + idle) connections in the pool.
-	// Note that passing a value less than or equal to 0 will mean there is no limit.
+	// Set the maximum number of open (in-use + idle) connections in the pool. Note that
+	//passing a value less than or equal to 0 will mean there is no limit.
 	db.SetMaxOpenConns(cfg.db.maxOpenConns)
-
-	// Set the maximum number of idle connections in the pool.
-	// Again, passing a value less than or equal to 0 will mean there is no limit.
+	// Set the maximum number of idle connections in the pool. Again, passing a value
+	//less than or equal to 0 will mean there is no limit.
 	db.SetMaxIdleConns(cfg.db.maxIdleConns)
-
 	// Use the time.ParseDuration() function to convert the idle timeout duration string
-	// to a time.Duration type.
+	//to a time.Duration type.
 	duration, err := time.ParseDuration(cfg.db.maxIdleTime)
 	if err != nil {
 		return nil, err
 	}
-
 	// Set the maximum idle timeout.
 	db.SetConnMaxIdleTime(duration)
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	err = db.PingContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-
 	return db, nil
 }
