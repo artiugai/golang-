@@ -1,6 +1,7 @@
 package data
 
 import (
+	"database/sql"
 	"greenlight.alexedwards.net/internal/validator"
 	"time"
 )
@@ -31,4 +32,28 @@ func ValidateMovie(v *validator.Validator, watches *Watches) {
 	v.Check(len(watches.WatchesType) <= 5, "watchestype", "must not contain more than 5 watchestype")
 	v.Check(validator.Unique(watches.WatchesType), "watchestype", "must not contain duplicate values")
 
+}
+
+type WatchesModel struct {
+	DB *sql.DB
+}
+
+// Add a placeholder method for inserting a new record in the movies table.
+func (m WatchesModel) Insert(movie *Watches) error {
+	return nil
+}
+
+// Add a placeholder method for fetching a specific record from the movies table.
+func (m WatchesModel) Get(id int64) (*Watches, error) {
+	return nil, nil
+}
+
+// Add a placeholder method for updating a specific record in the movies table.
+func (m WatchesModel) Update(movie *Watches) error {
+	return nil
+}
+
+// Add a placeholder method for deleting a specific record from the movies table.
+func (m WatchesModel) Delete(id int64) error {
+	return nil
 }
