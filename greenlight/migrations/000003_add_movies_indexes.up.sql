@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS accessories_brand_idx ON watches USING GIN (to_tsvector('simple', brand));
+CREATE INDEX IF NOT EXISTS accessories_material_idx ON watches USING GIN (to_tsvector('simple', material));

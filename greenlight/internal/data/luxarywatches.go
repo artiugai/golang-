@@ -5,15 +5,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/lib/pq"
 	"greenlight.alexedwards.net/internal/validator"
 	"time"
 )
 
-// At the top of your data package, after the imports
+// Define a custom ErrEditConflict error.
 var ErrEditConflict = errors.New("edit conflict: record has been modified")
-
-// ... rest of your code ...
 
 type Watches struct {
 	ID        int64     `json:"id"`
@@ -33,9 +32,9 @@ type WatchesModel struct {
 func (w *WatchesModel) Insert(watches *Watches) error {
 	query := `
 		INSERT INTO watches (title, year, price, brand, material)
-		VALUES ($1, $2, $3, $4)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at, version`
-	args := []interface{}{watches.Title, watches.Year, watches.Price, pq.Array(watches.Brand)}
+	args := []interface{}{watches.Title, watches.Year, watches.Price, pq.Array(watches.Brand), pq.Array(watches.Material)}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	return w.DB.QueryRowContext(ctx, query, args...).Scan(&watches.ID, &watches.CreatedAt, &watches.Version)
@@ -46,7 +45,7 @@ func (w WatchesModel) Get(id int64) (*Watches, error) {
 		return nil, ErrRecordNotFound
 	}
 	query := `
-SELECT id, created_at, title, year, price, brand, version, material
+SELECT id, created_at, title, year, price, brand, material, version
 FROM watches
 WHERE id = $1`
 
@@ -60,8 +59,8 @@ WHERE id = $1`
 		&watch.Title,
 		&watch.Year,
 		&watch.Price,
-		&watch.Brand,
-		&watch.Material,
+		pq.Array(&watch.Brand),
+		pq.Array(&watch.Material),
 		&watch.Version,
 	)
 	if err != nil {
@@ -78,15 +77,16 @@ WHERE id = $1`
 func (w WatchesModel) Update(watch *Watches) error {
 	query := `
 UPDATE watches
-SET title = $1, year = $2, price = $3, brand = $4,  version = version + 1
-WHERE id = $5 AND version = $6
+SET title = $1, year = $2, price = $3, brand = $4, material = $5, version = version + 1
+WHERE id = $6 AND version = $7
 RETURNING version`
 
 	args := []interface{}{
 		watch.Title,
 		watch.Year,
 		watch.Price,
-		watch.Brand,
+		pq.Array(watch.Brand),
+		pq.Array(watch.Material),
 		watch.ID,
 		watch.Version,
 	}
@@ -129,14 +129,62 @@ WHERE id = $1`
 	return nil
 }
 
+func (w WatchesModel) GetAll(title string, filters Filters) ([]*Watches, Metadata, error) {
+	query := fmt.Sprintf(`
+SELECT count(*) OVER(), id, created_at, title, year, price, brand, material, version
+FROM watches
+WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
+ORDER BY %s %s, id ASC
+LIMIT $3 OFFSET $4`, filters.sortColumn(), filters.sortDirection())
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	args := []interface{}{title, filters.limit(), filters.offset()}
+	rows, err := w.DB.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, Metadata{}, err
+	}
+	defer rows.Close()
+
+	totalRecords := 0
+	watches := []*Watches{}
+	for rows.Next() {
+		var watch Watches
+		err := rows.Scan(
+			&totalRecords,
+			&watch.ID,
+			&watch.CreatedAt,
+			&watch.Title,
+			&watch.Year,
+			&watch.Price,
+			pq.Array(&watch.Brand),
+			pq.Array(&watch.Material),
+			&watch.Version,
+		)
+		if err != nil {
+			return nil, Metadata{}, err
+		}
+		watches = append(watches, &watch)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, Metadata{}, err
+	}
+
+	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
+	return watches, metadata, nil
+}
+
 func (w Watches) MarshalJSON() ([]byte, error) {
 	type WatchAlias Watches
 	aux := struct {
 		WatchAlias
-		Brand []string `json:"watchesBrand,omitempty"`
+		Brand    []string `json:"watchesBrand,omitempty"`
+		Material []string `json:"watchesMaterial,omitempty"`
 	}{
 		WatchAlias: WatchAlias(w),
 		Brand:      w.Brand,
+		Material:   w.Material,
 	}
 	return json.Marshal(aux)
 }
