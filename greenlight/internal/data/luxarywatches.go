@@ -57,3 +57,25 @@ func (m WatchesModel) Update(movie *Watches) error {
 func (m WatchesModel) Delete(id int64) error {
 	return nil
 }
+
+type MockWatchesModel struct{}
+
+func (m MockWatchesModel) Insert(watches *Watches) error {
+
+	return nil //
+}
+
+func (m MockWatchesModel) Get(id int64) (*Watches, error) {
+
+	return nil, nil
+}
+
+func (m MockWatchesModel) Update(watches *Watches) error {
+
+	return nil
+}
+
+func (m MockWatchesModel) Delete(id int64) error {
+
+	return nil
+}
