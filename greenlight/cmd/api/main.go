@@ -48,9 +48,6 @@ func main() {
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
 	flag.Parse()
 
-	// Initialize a new jsonlog.Logger which writes any messages *at or above* the INFO severity level to the standard out stream.
-	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
-
 	db, err := openDB(cfg)
 	if err != nil {
 		// Use the PrintFatal() method to write a log entry containing the error at the FATAL level and exit.

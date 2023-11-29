@@ -5,17 +5,19 @@ import (
 	"net/http"
 )
 
-func (app *application) routes() *httprouter.Router {
+func (app *application) routes() http.Handler {
 	router := httprouter.New()
+
 	router.NotFound = http.HandlerFunc(app.notFoundResponse)
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/watches", app.listWatchesHandler)          // Изменено с accessories на watches
-	router.HandlerFunc(http.MethodPost, "/v1/watches", app.createWatchesHandler)       // Изменено с accessories на watches
-	router.HandlerFunc(http.MethodGet, "/v1/watches/:id", app.showWatchesHandler)      // Изменено с accessories на watches
-	router.HandlerFunc(http.MethodPatch, "/v1/watches/:id", app.updateWatchesHandler)  // Изменено с accessories на watches
-	router.HandlerFunc(http.MethodDelete, "/v1/watches/:id", app.deleteWatchesHandler) // Изменено с accessories на watches
+	router.HandlerFunc(http.MethodGet, "/v1/movies", app.listWatchesHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createWatchesHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showWatchesHandler)
+	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateWatchesHandler)
+	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteWatchesHandler)
 
-	return router
+	// Wrap the router with the panic recovery middleware.
+	return app.recoverPanic(router)
 }
