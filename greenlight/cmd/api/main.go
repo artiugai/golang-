@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+	_ "github.com/lib/pq"
 	"greenlight.alexedwards.net/internal/data"
 	"greenlight.alexedwards.net/internal/jsonlog"
 	"greenlight.alexedwards.net/internal/mailer" // New import
