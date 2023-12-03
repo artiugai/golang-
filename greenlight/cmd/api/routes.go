@@ -12,12 +12,16 @@ func (app *application) routes() http.Handler {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/movies", app.listWatchesHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createWatchesHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showWatchesHandler)
-	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateWatchesHandler)
-	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteWatchesHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/watches", app.listWatchesHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/watches", app.createWatchesHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/watches/:id", app.showWatchesHandler)
+	router.HandlerFunc(http.MethodPatch, "/v1/watches/:id", app.updateWatchesHandler)
+	router.HandlerFunc(http.MethodDelete, "/v1/watches/:id", app.deleteWatchesHandler)
+	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 
-	// Wrap the router with the panic recovery middleware.
+	return app.recoverPanic(app.rateLimit(router))
+
+	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
+
 	return app.recoverPanic(app.rateLimit(router))
 }
