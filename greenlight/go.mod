@@ -6,6 +6,7 @@ require (
 	github.com/ClickHouse/clickhouse-go v1.5.4 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/denisenkom/go-mssqldb v0.12.3 // indirect
+	github.com/go-mail/mail/v2 v2.3.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/golang-migrate/migrate/v4 v4.16.2 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
@@ -21,4 +22,5 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
