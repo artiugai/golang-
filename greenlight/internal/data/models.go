@@ -12,15 +12,17 @@ var (
 )
 
 type Models struct {
-	Watches WatchesModel
-	Tokens  TokenModel // Add a new Tokens field.
-	Users   UserModel
+	Watches     WatchesModel
+	Tokens      TokenModel // Add a new Tokens field.
+	Permissions PermissionModel
+	Users       UserModel
 }
 
-func NewModels(db *sql.DB) Models {
+func NewWatchesModel(db *sql.DB) Models {
 	return Models{
-		Watches: WatchesModel{DB: db},
-		Tokens:  TokenModel{DB: db}, // Initialize a new TokenModel instance.
-		Users:   UserModel{DB: db},
+		Watches:     WatchesModel{DB: db},
+		Permissions: PermissionModel{DB: db},
+		Tokens:      TokenModel{DB: db}, // Initialize a new TokenModel instance.
+		Users:       UserModel{DB: db},
 	}
 }

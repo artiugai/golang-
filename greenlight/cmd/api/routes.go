@@ -12,15 +12,19 @@ func (app *application) routes() http.Handler {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/watches", app.listWatchesHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/watches", app.createWatchesHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/watches/:id", app.showWatchesHandler)
-	router.HandlerFunc(http.MethodPatch, "/v1/watches/:id", app.updateWatchesHandler)
-	router.HandlerFunc(http.MethodDelete, "/v1/watches/:id", app.deleteWatchesHandler)
+
+	// Use the requirePermission() middleware on each of the /v1/movies** endpoints,
+	// passing in the required permission code as the first parameter.
+	router.HandlerFunc(http.MethodGet, "/v1/movies", app.requirePermission("movies:read", app.listWatchesHandler))
+	router.HandlerFunc(http.MethodPost, "/v1/movies", app.requirePermission("movies:write", app.createWatchesHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.requirePermission("movies:read", app.showWatchesHandler))
+	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.requirePermission("movies:write", app.updateWatchesHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.requirePermission("movies:write", app.deleteWatchesHandler))
+
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
 
-	return app.recoverPanic(app.rateLimit(router))
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
 
-	return app.recoverPanic(app.rateLimit(router))
+	return app.recoverPanic(app.rateLimit(app.authenticate(router)))
 }

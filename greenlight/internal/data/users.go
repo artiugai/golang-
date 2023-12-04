@@ -14,9 +14,8 @@ var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 )
 
-// User struct represents an individual user. Notice the use of the json:"-" struct tag
-// to prevent the Password and Version fields from appearing in JSON output.
-// The Password field uses the custom password type defined below.
+var AnonymousUser = &User{}
+
 type User struct {
 	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
@@ -27,9 +26,10 @@ type User struct {
 	Version   int       `json:"-"`
 }
 
-// password is a custom type with plaintext and hashed password fields.
-// The plaintext field is a pointer to a string, to distinguish between an absent password
-// and an empty string password.
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
+}
+
 type password struct {
 	plaintext *string
 	hash      []byte
